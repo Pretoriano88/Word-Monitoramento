@@ -1,0 +1,52 @@
+version: '3.7' # Define a versão do Docker Compose a ser usada
+
+services: # Define os serviços que serão configurados
+
+  # Serviço MySQL
+  db: # Nome do serviço (usado como identificador)
+    image: mysql:5.7 # Especifica a imagem do Docker a ser usada para este serviço (MySQL versão 5.7)
+    volumes: # Define os volumes a serem montados
+      - db_data:/var/lib/mysql # Monta o volume db_data no diretório /var/lib/mysql dentro do contêiner
+    restart: always # Garante que o contêiner será reiniciado automaticamente se falhar
+    environment: # Define variáveis de ambiente para configurar o MySQL
+      MYSQL_ROOT_PASSWORD: example # Senha do usuário root do MySQL
+      MYSQL_DATABASE: wordpress # Nome do banco de dados a ser criado
+      MYSQL_USER: wordpress # Nome do usuário do banco de dados
+      MYSQL_PASSWORD: wordpress # Senha do usuário do banco de dados
+
+  # Serviço WordPress com Node Exporter
+  wordpress: # Nome do serviço (usado como identificador)
+    build: . # Usa o Dockerfile no diretório atual para construir a imagem
+    volumes: # Define os volumes a serem montados
+      - wordpress_data:/var/www/html # Monta o volume wordpress_data no diretório /var/www/html dentro do contêiner
+    ports: # Define as portas a serem expostas
+      - "8000:80" # Mapeia a porta 80 do contêiner para a porta 8000 no host
+      - "9100:9100" # Expor a porta do Node Exporter para a porta 9100 no host
+    restart: always # Garante que o contêiner será reiniciado automaticamente se falhar
+    environment: # Define variáveis de ambiente para configurar o WordPress
+      WORDPRESS_DB_HOST: db:3306 # Endereço do host do banco de dados e a porta (serviço db)
+      WORDPRESS_DB_USER: wordpress # Nome do usuário do banco de dados
+      WORDPRESS_DB_PASSWORD: wordpress # Senha do usuário do banco de dados
+      WORDPRESS_DB_NAME: wordpress # Nome do banco de dados
+    depends_on: # Define dependências de serviço
+      - db # Especifica que o serviço WordPress depende do serviço db (MySQL)
+
+  # Serviço Prometheus
+  prometheus: # Nome do serviço (usado como identificador)
+    image: prom/prometheus:latest # Especifica a imagem do Docker a ser usada para este serviço (Prometheus na versão mais recente)
+    volumes: # Define os volumes a serem montados
+      - prometheus_data:/prometheus # Monta o volume prometheus_data no diretório /prometheus dentro do contêiner
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml # Monta o arquivo de configuração do Prometheus no diretório /etc/prometheus dentro do contêiner
+    ports: # Define as portas a serem expostas
+      - "9090:9090" # Mapeia a porta 9090 do contêiner para a porta 9090 no host
+
+  # Serviço Grafana
+  grafana: # Nome do serviço (usado como identificador)
+    image: grafana/grafana:latest # Especifica a imagem do Docker a ser usada para este serviço (Grafana na versão mais recente)
+    ports: # Define as portas a serem expostas
+      - "3000:3000" # Mapeia a porta 3000 do contêiner para a porta 3000 no host
+
+volumes: # Define os volumes que serão usados pelos serviços
+  db_data: # Volume para persistir os dados do MySQL
+  wordpress_data: # Volume para persistir os dados do WordPress
+  prometheus_data: # Volume para persistir os dados do Prometheus

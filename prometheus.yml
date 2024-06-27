@@ -1,0 +1,7 @@
+global:
+  scrape_interval: 15s # Define o intervalo global de scraping, ou seja, com que frequência o Prometheus deve coletar métricas dos endpoints configurados. Neste caso, a cada 15 segundos.
+
+scrape_configs:
+  - job_name: 'node_exporter' # Define um nome para o job de scraping. Este nome é usado para identificar as configurações específicas de scraping no Prometheus.
+    static_configs:
+      - targets: ['wordpress:9100'] # Lista de endpoints a serem monitorados. Aqui, está configurado para coletar métricas do Node Exporter rodando no serviço 'wordpress' na porta 9100.
